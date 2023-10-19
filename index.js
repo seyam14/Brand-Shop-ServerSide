@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app=express();
 const port =process.env.PORT || 5000;
@@ -34,12 +34,45 @@ async function run() {
         const result = await cursor.toArray();
         res.send(result);
     })
+
+    app.get('/addProducts/:id', async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await ProductCollection.findOne(query)
+      res.send(result)
+     })
+
+    
     app.post('/addProducts', async (req, res) => {
         const newProduct = req.body;
         console.log(newProduct);
         const result = await ProductCollection.insertOne(newProduct);
         res.send(result);
     })
+
+    
+//    updated work here
+app.put('/addProducts/:id', async(req, res) => {
+  const id = req.params.id;
+  const filter = {_id: new ObjectId(id)}
+  const options = { upsert: true };
+  const UpdateProduct = req.body;
+
+  const product = {
+      $set: {
+          name: UpdateProduct.name, 
+          BrandName: UpdateProduct.BrandName, 
+          Price: UpdateProduct.Price, 
+          Type: UpdateProduct.Type, 
+         ShortDescription : UpdateProduct.ShortDescription, 
+         rating: UpdateProduct.rating, 
+          photo: UpdateProduct.photo
+      }
+  }
+
+  const result = await ProductCollection.updateOne(filter, product, options);
+  res.send(result);
+})
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
