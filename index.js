@@ -26,8 +26,10 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-
+    // for product
     const ProductCollection = client.db('ProductDB').collection('Product');
+    // for user
+    const userCollection = client.db('ProductDB').collection('user');
 
     app.get('/addProducts', async (req, res) => {
         const cursor = ProductCollection.find();
@@ -73,6 +75,41 @@ app.put('/addProducts/:id', async(req, res) => {
   const result = await ProductCollection.updateOne(filter, product, options);
   res.send(result);
 })
+
+  // user api
+     
+   app.get('/user', async (req, res) => {
+    const cursor = userCollection.find();
+    const users = await cursor.toArray();
+    res.send(users);
+})
+
+app.post('/user', async (req, res) => {
+    const user = req.body;
+    console.log(user);
+    const result = await userCollection.insertOne(user);
+    res.send(result);
+});
+
+app.patch('/user', async (req, res) => {
+    const user = req.body;
+    const filter = { email: user.email }
+    const updateDoc = {
+        $set: {
+            lastLoggedAt: user.lastLoggedAt
+        }
+    }
+    const result = await userCollection.updateOne(filter, updateDoc);
+    res.send(result);
+})
+
+app.delete('/user/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await userCollection.deleteOne(query);
+    res.send(result);
+})
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
